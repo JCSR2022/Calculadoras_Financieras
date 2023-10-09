@@ -45,13 +45,12 @@ class UDIBONOS(Bono):
         
         try:
             # nombre de archivo modelo para pruebas
-            if not archivo: archivo = 'info_Bonos\\UDIS_Consulta_20230924_Mod.xlsx'
-            
-            self.df_conversion = pd.read_excel(archivo) 
+            if not archivo: archivo ='C:\\Calculadoras\\info_Bonos\\UDIS_Consulta_20230924_Mod.xlsx'
+            self.df_conversion = pd.read_excel(archivo)
             
         except Exception as e:
-                print("Error init: ", e)
-                self.df_conversion = e
+            print("Error init: ", e)
+            self.df_conversion = None
         
         
     def ConvertirUdisPesos(self,valor,conv=True, fechaInteres = None ):
@@ -70,7 +69,8 @@ class UDIBONOS(Bono):
             nacional se realiza al valor de la UDI vigente el día en que se hacen las liquidaciones
             correspondientes.'
         """
-        try:
+        try:               
+                
             if not fechaInteres: 
                 fechaInteres = pd.to_datetime( self._infoBono['TimId'])
             else:
@@ -95,8 +95,7 @@ class UDIBONOS(Bono):
         except Exception as e:
             self._ValCalBono['ConvertirUdisPesos'] = {'Error':e}
             print("Error ConvertirUdisPesos ", e)
-            return 0
-        
+            return e
     
     def calcPrecioLimpio(self,TC=None,r=None,d=None,K=None,VN=None):
         """
@@ -174,7 +173,7 @@ class UDIBONOS(Bono):
     
             # Definicion de función objetivo que encuentra la tasa de rendimiento
             def objetivo(r):
-                return calcular_precio_limpio(TC,r,d,K) - PrecioLimpio
+                return calcular_precio_limpio(TC,r,d,K) -  PrecioLimpio
 
             # Encontrar la tasa de rendimiento utilizando scipy.optimize.newton
             # Suponemos siempre una tasa inicial del 10%
@@ -232,6 +231,4 @@ class UDIBONOS(Bono):
                                                   'ValorNominal':VN}
         
         return PrecioSucioReporto# , RendimientoReporto
-
-
 

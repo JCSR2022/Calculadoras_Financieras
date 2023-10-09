@@ -104,7 +104,7 @@ class CETES(Bono):
             - t (int, optional): El período en días hasta el vencimiento del bono
             - VN (float, optional): Valor nominal del bono.
         """
-        if not PrecioSucio: PrecioSucio = self._infoBono['PrecioLimpio'] 
+        if not PrecioSucio: PrecioSucio = self._infoBono['PrecioSucio'] 
         if not r: r = self._infoBono['TasaDeRendimiento']/100 
         if not t: t = (self._infoBono['FechaVcto'] - self._infoBono['TimId'] ).days
         if not VN: VN = self._infoBono['ValorNominal'] 
@@ -116,8 +116,7 @@ class CETES(Bono):
         
         
         PrecioSucioReporto = PrecioFuturo(PrecioSucio,TasaReporto, plazoReporto)
-        #RendimientoReporto = self.calcRendimiento(PrecioSucioReporto)
-        
+ 
         self._ValCalBono['PrecioSucioReporto'] = {'TasaReporto':TasaReporto ,
                                                   'plazoReporto': plazoReporto,
                                                   'PrecioSucio':PrecioSucio,
@@ -125,7 +124,7 @@ class CETES(Bono):
                                                   'PlazoEmision':t,
                                                   'ValorNominal':VN}
         
-        return PrecioSucioReporto# , RendimientoReporto
+        return PrecioSucioReporto
     
     
     def calcPrecioLimpio_TasaDescuento(self,b,t = None,VN = None):
@@ -214,15 +213,3 @@ class CETES(Bono):
                                                       'TasaDeRendimiento':r,'PlazoEmision':t}     
         return rc
         
-    
-    
-    
-    
-
-def main():
-    pass
-if __name__ == '__main__':
-    main()       
-    
-    
-    

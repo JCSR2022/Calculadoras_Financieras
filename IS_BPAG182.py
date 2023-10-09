@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 27 06:26:54 2023
+Created on Fri Oct  6 13:01:52 2023
 
-@author: jhona
+@author: EXT_JSANTA
 """
+
 
 from INVEX_calc_Bonos import Bono
 
@@ -11,7 +12,7 @@ import pandas as pd
 import numpy as np
 from datetime import  timedelta
 
-class LD_BondesD(Bono):
+class IS_bpag182(Bono):
     
     def __init__(self, infoBono = {}, archivo= None):
         """
@@ -33,7 +34,6 @@ class LD_BondesD(Bono):
             self.df_tabla_ri['Fecha'] = pd.to_datetime(self.df_tabla_ri['Fecha'])
             
             
-            # Calculo constante ajuste off set precio calculo y vector.
             PrecioLimpioVector = self._infoBono['PrecioLimpio']
             if PrecioLimpioVector != 0:
                 Fechas = self.calcular_fechas_ultimo_cupon()
@@ -48,6 +48,7 @@ class LD_BondesD(Bono):
                 s = self._infoBono['Sobretasa'] 
                 K = self.Num_cupones_por_liquidar()
                 rvector = self._infoBono['TasaDeRendimiento']
+                
                 tabla_ri = self.hallar_tabla_ri_fechas(Fechas, df_tabla_ri,FechaInteres,FrecCpn)
                 valor_TCdev = self.calc_TCdev(tabla_ri) 
                 PcalcVector= self.calc_Precio_Limpio_preliminar(rvector,s,valor_TCdev,Idev,d_calc,K,VN,FrecCpn)
@@ -63,7 +64,7 @@ class LD_BondesD(Bono):
          
             
     
-    def hallar_tabla_ri_fechas(self,fechas,df_tabla_ri,fechaInc,FrecCpn=28):
+    def hallar_tabla_ri_fechas(self,fechas,df_tabla_ri,fechaInc,FrecCpn):
         """
         Encuentra los ri para cada 'Fecha' de la lista fechas 
         en el DataFrame 'df_tabla_ri' en la columna 'Fecha'.
@@ -320,7 +321,6 @@ class LD_BondesD(Bono):
         if not precio: 
             P = self._infoBono['PrecioLimpio'] 
         else: P = precio
-        
         s = self._infoBono['Sobretasa'] 
         
         Fechas = self.calcular_fechas_ultimo_cupon()
@@ -377,6 +377,7 @@ class LD_BondesD(Bono):
         return tasa_rendimiento
     
     
+    
     def CalcRegresos(self, TasaReporto, plazoReporto,PrecioSucio = None,r = None,t = None,VN = None):
         """
         Calculos para regresos, calcula el valor futuro del precio del CETE con la tasa de reporto 
@@ -402,7 +403,8 @@ class LD_BondesD(Bono):
         
         
         PrecioSucioReporto = PrecioFuturo(PrecioSucio,TasaReporto, plazoReporto)
- 
+    
+        
         self._ValCalBono['PrecioSucioReporto'] = {'TasaReporto':TasaReporto ,
                                                   'plazoReporto': plazoReporto,
                                                   'PrecioSucio':PrecioSucio,
@@ -411,4 +413,6 @@ class LD_BondesD(Bono):
                                                   'ValorNominal':VN}
         
         return PrecioSucioReporto 
+
+
 

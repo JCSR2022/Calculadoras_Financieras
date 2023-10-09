@@ -6,28 +6,28 @@ Created on Fri Sep  1 18:02:51 2023
 """
 
 #Librerias a utilizar 
-#import time
+
 import os
-#import sys
-#import os
-#from datetime import datetime
 import re
 import xlwings as xw
 import numpy as np
 import matplotlib.pyplot as plt
 import calendar
-from datetime import date, timedelta
+from datetime import timedelta
 import sympy as sp
 #from itertools import combinations
 import scipy.optimize as optimize
 from sklearn.linear_model import LinearRegression
 import pandas as pd
 from openpyxl.utils import get_column_letter
+from sqlalchemy import create_engine 
 
 from BI_CETES import CETES
 from S_UDIBONOS import UDIBONOS
 from M_TASA_FIJA import M_TasaFija
 from LD_BONDES_D import LD_BondesD
+from IM_BPAG28 import IM_bpag28
+from IS_BPAG182 import IS_bpag182
 
 
 # ----------------Clase para conexion Excel_pyton--------------------------------------
@@ -124,8 +124,6 @@ class xlwings_Excel:
         try:
             hoja = self.check_hoja(nombre_hoja)
             celda = self.check_celda(dir_celda)
-            #tambien se puede sin usar pandas:
-            # matriz = self.wb[hoja].range(celda).options(expand='table')
             df = self.wb.sheets[hoja][celda].options(pd.DataFrame, expand='table', index=False).value
             return df
         except Exception as e:
@@ -171,22 +169,50 @@ def cargarBonos():
         Se devuelve la direccion del archivo para despues ser utilizada por cargarInfoBono()
         Tambien la info en el excel de la carpeta info_Bonos se cargara en la pagina "Info_Bonos"
     """
-    dicc_info_Bonos =  {'M_TASA_FIJA':"info_Bonos\\20230831_t-1_Vector_M.xlsx",
-                        'LD_BONDES_D':"info_Bonos\\20230831_t-1_Vector_LD.xlsx",
-                    'BI_CETES':"info_Bonos\\20230831_t-1_Vector_BI.xlsx " ,
-                    'S_UDIBONOS':"info_Bonos\\20230831_t-1_Vector_S.xlsx   "   
-                        }
-    
     enlace = xlwings_Excel()
     nombre_hoja = "Calculadora"
     tipo_bono = enlace.leer_celda("$C$9",nombre_hoja)
-    df = pd.DataFrame([])
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
-    ruta_archivo_info_Bono = os.path.join(directorio_actual, dicc_info_Bonos[tipo_bono] )
-    df = pd.read_excel(ruta_archivo_info_Bono)
-    enlace.escribir_tabla(df,"$A$1","Info_Bonos" )  
     
-    return ruta_archivo_info_Bono
+    try:
+        # Configuración de la conexión a la base de datos
+        server = 'TPPBIDB01\BI'
+        database = 'BIDWH'
+        username = 'UsrCB'
+        password = "Us12#CB1nV3x"
+        tabla = 'BIDWH.dwh.PIPVectorAnaliticoMD'
+        
+        # Crear la cadena de conexión para SQLAlchemy
+        connection_string = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server'
+        # Crear un motor de SQLAlchemy
+        engine = create_engine(connection_string)
+    
+        dicc_info_Bonos =  {'M_TASA_FIJA':"'M'",
+                            'LD_BONDES_D':"'LD'",
+                        'BI_CETES':"'BI'" ,
+                        'S_UDIBONOS':"'S'",
+                        'IM_BPAG28':"'IM'",
+                        'IS_BPAG182': " 'IS' "
+                            }
+        
+        seleccion = dicc_info_Bonos[tipo_bono]
+        # Consulta SQL
+        query = f"select * from {tabla} where ( TimId = (select top 1 TimId from  {tabla} order by TimId desc)) and (TipoValor = {seleccion});"
+    
+        # Ejecutar la consulta y carga los datos en un DataFrame de pandas
+        df = pd.read_sql(query, engine)
+        ruta_archivo_info_Bono = 'C:\\Calculadoras\\info_Bonos\\infoBono.xlsx'
+        
+        #Guarda el df 
+        df.to_excel(ruta_archivo_info_Bono,index=False)
+        
+        enlace.escribir_tabla(df,"$A$1","Info_Bonos" )  
+
+        return ruta_archivo_info_Bono
+        
+    #En caso de falla de la conexion carga la info Basica
+    except Exception as e: 
+        print("Error: ", e)  
+        return ruta_archivo_info_Bono
 
 
 def cargarInfoBono(num_serie = False ,archivo =  False):
@@ -220,10 +246,20 @@ def cargarInfoBono(num_serie = False ,archivo =  False):
     
     # Se crea el objeto Bono respectivo:
     tipo_bono = enlace.leer_celda("$C$9",nombre_hoja)
-    if tipo_bono == 'M_TASA_FIJA': BonoEnEvaluacion = M_TasaFija(info_bono_analizar)
-    elif  tipo_bono == 'LD_BONDES_D': BonoEnEvaluacion = LD_BondesD(info_bono_analizar)
-    elif  tipo_bono == 'BI_CETES': BonoEnEvaluacion = CETES(info_bono_analizar)  
-    elif  tipo_bono =='S_UDIBONOS' : BonoEnEvaluacion = UDIBONOS(info_bono_analizar)   
+    
+    
+    dicc_info_Bonos =  {'M_TASA_FIJA':M_TasaFija,
+                        'LD_BONDES_D':LD_BondesD,
+                    'BI_CETES':CETES ,
+                    'S_UDIBONOS':UDIBONOS,
+                    'IM_BPAG28':IM_bpag28,
+                    'IS_BPAG182':IS_bpag182
+                        }
+    
+    if tipo_bono in dicc_info_Bonos:
+        BonoEnEvaluacion = dicc_info_Bonos[tipo_bono](info_bono_analizar)
+        
+    
     
     enlace.escribir_celda(BonoEnEvaluacion.verInfoBono()['Serie'],"$H$4",nombre_hoja)
     enlace.escribir_celda(BonoEnEvaluacion.verInfoBono()['ValorNominal'],"$H$5",nombre_hoja)
@@ -862,5 +898,3 @@ if __name__ == '__main__':
     main()
 
         
-
-

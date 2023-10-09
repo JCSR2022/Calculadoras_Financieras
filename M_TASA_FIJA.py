@@ -187,5 +187,3 @@ class M_TasaFija(Bono):
                                                   'ValorNominal':VN}
         return PrecioSucioReporto
     
-    
-   

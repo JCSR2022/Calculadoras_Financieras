@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- 
 """
 Created on Wed Sep 20 16:27:44 2023
 
@@ -445,21 +445,6 @@ if __name__ == '__main__':
         
         
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
