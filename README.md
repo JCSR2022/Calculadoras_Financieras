@@ -1,6 +1,6 @@
 # Informe Final del Proyecto: Desarrollo de Calculadoras Financieras Personalizadas
 
-Por razones de confidencialidad el detalle de la implementacion no se puede compartir por este medio, sin embargo, el presente informe sirve para comprender la estructura de las solucion implemntada.
+Por razones de confidencialidad, el detalle de la implementación no se puede compartir por este medio; sin embargo, el presente informe sirve para comprender la estructura de la solución implementada.
 
 ## Introducción
 
